@@ -1,12 +1,12 @@
-# Terraform Version Update Scripts
+# Terraform/OpenTofu Version Update Scripts
 
-Two Python scripts to automate updating version references in your Terraform module sources. Perfect for managing git-based Terraform modules across large codebases.
+Two Python scripts to automate updating version references in your Terraform and OpenTofu module sources. Perfect for managing git-based modules across large codebases.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.x
-- Terraform files using git-based module sources
+- Terraform or OpenTofu files using git-based module sources
 
 ### Download & Use
 ```bash
@@ -34,7 +34,7 @@ Updates **specific module paths** within git repositories. Use when you want to 
 ### `update-tf-repo.py` - Repository-Wide Updates
 Updates **all references** to a git repository regardless of which modules/subdirectories are used. Use for repository-wide version bumps.
 
-**Example**: Update every reference to `my-terraform-modules.git` to v3.0.0, whether it's using `//network`, `//storage`, `//compute`, or any other subdirectory.
+**Example**: Update every reference to `my-modules.git` to v3.0.0, whether it's using `//network`, `//storage`, `//compute`, or any other subdirectory.
 
 ## 🎯 Usage Examples
 
@@ -48,22 +48,22 @@ python3 update-tf-submodule.py network v2.1.0
 **Before:**
 ```hcl
 module "vpc" {
-  source = "git@github.com:myorg/terraform-modules.git//network?ref=v2.0.0"
+  source = "git@github.com:myorg/modules.git//network?ref=v2.0.0"
 }
 
 module "storage" {
-  source = "git@github.com:myorg/terraform-modules.git//storage?ref=v1.5.0"
+  source = "git@github.com:myorg/modules.git//storage?ref=v1.5.0"
 }
 ```
 
 **After:**
 ```hcl
 module "vpc" {
-  source = "git@github.com:myorg/terraform-modules.git//network?ref=v2.1.0"  # ✅ Updated
+  source = "git@github.com:myorg/modules.git//network?ref=v2.1.0"  # ✅ Updated
 }
 
 module "storage" {
-  source = "git@github.com:myorg/terraform-modules.git//storage?ref=v1.5.0"  # ✅ Unchanged
+  source = "git@github.com:myorg/modules.git//storage?ref=v1.5.0"  # ✅ Unchanged
 }
 ```
 
@@ -100,36 +100,36 @@ module "aws_s3" {
 You've released v3.0.0 of your entire module repository and want to update all references across your codebase.
 
 ```bash
-python3 update-tf-repo.py terraform-modules v3.0.0
+python3 update-tf-repo.py modules v3.0.0
 ```
 
 **Before:**
 ```hcl
 module "vpc" {
-  source = "git@github.com:myorg/terraform-modules.git//network?ref=v2.5.0"
+  source = "git@github.com:myorg/modules.git//network?ref=v2.5.0"
 }
 
 module "database" {
-  source = "git@github.com:myorg/terraform-modules.git//database?ref=v2.3.0"
+  source = "git@github.com:myorg/modules.git//database?ref=v2.3.0"
 }
 
 module "monitoring" {
-  source = "git@github.com:myorg/terraform-modules.git//monitoring?ref=v2.1.0"
+  source = "git@github.com:myorg/modules.git//monitoring?ref=v2.1.0"
 }
 ```
 
 **After:**
 ```hcl
 module "vpc" {
-  source = "git@github.com:myorg/terraform-modules.git//network?ref=v3.0.0"  # ✅ Updated
+  source = "git@github.com:myorg/modules.git//network?ref=v3.0.0"  # ✅ Updated
 }
 
 module "database" {
-  source = "git@github.com:myorg/terraform-modules.git//database?ref=v3.0.0"  # ✅ Updated
+  source = "git@github.com:myorg/modules.git//database?ref=v3.0.0"  # ✅ Updated
 }
 
 module "monitoring" {
-  source = "git@github.com:myorg/terraform-modules.git//monitoring?ref=v3.0.0"  # ✅ Updated
+  source = "git@github.com:myorg/modules.git//monitoring?ref=v3.0.0"  # ✅ Updated
 }
 ```
 
@@ -163,14 +163,14 @@ python3 update-tf-repo.py <repo_name> <version> [--path <directory>]
 ```
 
 **Parameters:**
-- `repo_name` - Repository name without `.git` extension (e.g., `terraform-modules`, `infra-modules`)
+- `repo_name` - Repository name without `.git` extension (e.g., `modules`, `infra-modules`)
 - `version` - The git tag/version to set
 - `--path` - Directory to search (default: current directory)
 
 **Examples:**
 ```bash
-# Update all references to terraform-modules.git
-python3 update-tf-repo.py terraform-modules v3.0.0
+# Update all references to modules.git
+python3 update-tf-repo.py modules v3.0.0
 
 # Update specific repo in staging environment
 python3 update-tf-repo.py infra-modules v2.1.0 --path ./environments/staging
@@ -265,7 +265,7 @@ grep -r "myrepo\.git.*\?ref=" . --include="*.tf"
 python3 update-tf-submodule.py database v2.1.0 --path ./environments/dev
 
 # 2. Test in dev environment
-terraform plan
+terraform plan   # or: tofu plan
 
 # 3. If successful, promote to staging
 python3 update-tf-submodule.py database v2.1.0 --path ./environments/staging
@@ -277,12 +277,12 @@ python3 update-tf-submodule.py database v2.1.0 --path ./environments/prod
 ### Major Release Workflow
 ```bash
 # 1. Update all modules to new major version
-python3 update-tf-repo.py company-terraform-modules v3.0.0
+python3 update-tf-repo.py company-modules v3.0.0
 
-# 2. Run terraform plan across all environments
+# 2. Run terraform/tofu plan across all environments
 for env in dev staging prod; do
   cd environments/$env
-  terraform plan
+  terraform plan   # or: tofu plan
   cd ../..
 done
 
@@ -294,6 +294,6 @@ done
 ## 📞 Need Help?
 
 - Check the [AGENTS.md](AGENTS.md) file for technical implementation details
-- Review your Terraform module source URLs for compatibility
+- Review your Terraform/OpenTofu module source URLs for compatibility
 - Test on a small subset of files first
 - Use `git diff` to verify changes before committing
