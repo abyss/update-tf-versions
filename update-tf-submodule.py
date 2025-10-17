@@ -14,8 +14,8 @@ def update_module_version(file_path, module_name, version):
 
     # Pattern to match source lines with the specific module name
     # This matches the repository URL, followed by //, followed by the module name,
-    # ensuring the module name is followed by ?, /, or " (not part of a longer name)
-    # This prevents "core" from matching "core_network"
+    # ensuring the module name is at a path boundary (followed by ?, /, or ")
+    # This prevents "test" from matching "test/example" when looking for exact "test"
     pattern = r'(source\s*=\s*"[^"]+//)(' + re.escape(module_name) + r')(\?ref=[^"]*|/[^"]*|)(")'
 
     def replace_match(match):
@@ -24,13 +24,26 @@ def update_module_version(file_path, module_name, version):
         existing_suffix = match.group(3)  # Existing ?ref=version, /path, or empty
         quote = match.group(4)  # The closing quote
 
+        # If the suffix starts with '/' and doesn't match our exact module path, skip this match
+        if existing_suffix.startswith('/'):
+            # Extract the full path after //
+            full_path = module + existing_suffix
+            # If we're looking for 'test' but found 'test/something', it's not a match
+            if not full_path == module_name and not full_path.startswith(module_name + '?'):
+                return match.group(0)  # Return original unchanged
+
         # If there's already a ?ref= or a path after the module name, replace it
         # Otherwise, just add the new version
         if existing_suffix.startswith('?ref='):
             return f'{prefix}{module}?ref={version}{quote}'
         elif existing_suffix.startswith('/'):
-            # Keep any subpath after the module name but add the version
-            return f'{prefix}{module}{existing_suffix}?ref={version}{quote}'
+            # Keep any subpath after the module name but remove any existing ?ref= and add the new version
+            # Handle case where path contains ?ref= parameter
+            if '?ref=' in existing_suffix:
+                path_part = existing_suffix.split('?ref=')[0]
+                return f'{prefix}{module}{path_part}?ref={version}{quote}'
+            else:
+                return f'{prefix}{module}{existing_suffix}?ref={version}{quote}'
         else:
             # No existing ref or path, just add the version
             return f'{prefix}{module}?ref={version}{quote}'
